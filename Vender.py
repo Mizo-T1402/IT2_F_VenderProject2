@@ -15,6 +15,12 @@ class Item:
         self.sales = sales
         self.total = total
 
+# -----売上管理----
+
+class Sales:
+    def __init__(self, amount):
+        self.amount = amount
+
 
 # ---------- 金銭管理 ----------
 
@@ -26,6 +32,7 @@ class MoneyManager:
         "4": 500,
         "5": 1000
     }
+
 
     def __init__(self):
         self.money_stock = {}
@@ -82,9 +89,10 @@ class MoneyManager:
 class ItemManager:
     ITEM_KEYS = {"A", "B", "C", "D", "E"}
 
-    def __init__(self, money_manager):
+    def __init__(self, money_manager, sales_manager):
         self.items = []
         self.money_manager = money_manager
+        self.sales_manager = sales_manager
 
     def load_items(self, filepath):
         with open(filepath, newline="", encoding="utf-8-sig") as f:
@@ -110,6 +118,7 @@ class ItemManager:
                print(f"{item.code} {item.name}\033[34m {item.price}円 \033[0m")
             else:
                 print(f"{item.code} {item.name} {item.price}円")
+      
 
     def select_item(self, code):
         item = next((i for i in self.items if i.code == code), None)
@@ -130,11 +139,13 @@ class ItemManager:
         item.stock -= 1
         item.sales += 1
         item.total += item.price
+        self.sales_manager.sales_cal(item.total)
         self.money_manager.return_change(change)
 
         # csvに保存　合計金額の記入もここでよさそう
         self.save_items("items.csv")
         self.money_manager.save_money("money.csv")
+        self.SalesManager.save_sales("sales.csv",self.sales_manager.amount)
 
         print(f"\033[34m \n{item.name} の購入ありがとうございました。\033[0m")
         if change > 0:
@@ -142,7 +153,33 @@ class ItemManager:
 
         time.sleep(10)
         self.money_manager.reset()
-        return True
+        return True               
+
+
+#---売上関連---
+
+class SalesManager:
+    def __init__(self):
+        self.sales = []
+
+    def load_sales(self, filepath):
+        with open(filepath, newline="", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+               self.sales.append(
+                   Sales(int(row["amount"]))
+               )   
+
+    def sales_cal(self, total):
+        Sales.amount += total
+        return Sales.amount
+
+    def save_sales(self, filepath, amount):
+        #salesの内容をcsvに書き込み
+        with open(filepath, mode = "w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.writer(f)
+            writer.writerow(['amount'])
+            writer.writerow([amount])
 
 
 # ---------- メイン制御 ----------
@@ -150,11 +187,13 @@ class ItemManager:
 class VendMachineController:
     def __init__(self):
         self.money = MoneyManager()
-        self.items = ItemManager(self.money)
+        self.sales = SalesManager()
+        self.items = ItemManager(self.money,self.sales)
 
     def setup(self):
         self.items.load_items("items.csv")
         self.money.load_money("money.csv")
+        self.sales.load_sales("sales.csv")
 
     def clear(self):
         os.system("cls" if os.name == "nt" else "clear")
