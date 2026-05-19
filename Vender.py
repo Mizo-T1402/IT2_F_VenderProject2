@@ -7,11 +7,13 @@ from collections import defaultdict
 # ---------- データクラス ----------
 
 class Item:
-    def __init__(self, code, name, price, stock):
+    def __init__(self, code, name, price, stock, sales, total):
         self.code = code
         self.name = name
         self.price = price
         self.stock = stock
+        self.sales = sales
+        self.total = total
 
 
 # ---------- 金銭管理 ----------
@@ -89,16 +91,16 @@ class ItemManager:
             reader = csv.DictReader(f)
             for row in reader:
                 self.items.append(
-                    Item(row["code"], row["name"], int(row["price"]), int(row["stock"]))
+                    Item(row["code"], row["name"], int(row["price"]), int(row["stock"]),int(row["sales"]), int(row["total"]))
                 )
 
     def save_items(self, filepath):
         #itemの内容をcsvに書き込み
         with open(filepath, mode = "w", newline="", encoding="utf-8-sig") as f:
             writer = csv.writer(f)
-            writer.writerow(['code','name','price','stock'])
+            writer.writerow(['code','name','price','stock','sales','total'])
             for item in self.items:
-                writer.writerow([item.code,item.name,item.price,item.stock])
+                writer.writerow([item.code,item.name,item.price,item.stock,item.sales,item.total])
 
     def display_items(self):
         for item in self.items:
@@ -126,9 +128,11 @@ class ItemManager:
 
         # 払出
         item.stock -= 1
+        item.sales += 1
+        item.total += item.price
         self.money_manager.return_change(change)
 
-        # csvに保存
+        # csvに保存　合計金額の記入もここでよさそう
         self.save_items("items.csv")
         self.money_manager.save_money("money.csv")
 
