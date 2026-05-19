@@ -50,7 +50,7 @@ class MoneyManager:
         limit = 2 if value == 1000 else 20
         if self.inserted_total + value >= 2000:
             print("\033[31m 投入金額を超えています。\033[0m]]")
-            time.sleep(2)
+            time.sleep(1)
             return
         
         elif self.inserted_count[value] >= limit:
