@@ -1,2 +1,4 @@
 # IT2_F_VenderProject2
 作り直したリポジトリです
+ここは尚也君のbrunchです。
+（本文のコピペはこのbrunch上のVender.pyにコピペしてから作業を開始してくださいおなしゃす）
