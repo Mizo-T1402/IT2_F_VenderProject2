@@ -48,8 +48,14 @@ class MoneyManager:
 
         # 上限チェック
         limit = 2 if value == 1000 else 20
-        if self.inserted_count[value] >= limit:
+        if self.inserted_total + value >= 2000:
+            print("\033[31m 投入金額を超えています。\033[0m]]")
+            time.sleep(2)
+            return
+        
+        elif self.inserted_count[value] >= limit:
             print("\033[31m 投入枚数が上限(20枚)を超えています。\033[0m")
+            time.sleep(1)
             return
 
         self.inserted_total += value
@@ -78,7 +84,7 @@ class MoneyManager:
 # ---------- 商品管理 ----------
 
 class ItemManager:
-    ITEM_KEYS = {"A", "B", "C", "D", "E"}
+    ITEM_KEYS = {"A", "B", "C", "D", "E", "F"}
 
     def __init__(self, money_manager):
         self.items = []
@@ -114,14 +120,18 @@ class ItemManager:
 
         if item.stock == 0:
             print("\033[31m 売切れ商品です。他の商品を選択してください。\033[0m")
+            time.sleep(1)
             return False
 
         if self.money_manager.inserted_total < item.price:
+            print("\033[31m 投入金が不足しています。お金を追加してください。\033[0m")
+            time.sleep(1)
             return False
 
         change = self.money_manager.inserted_total - item.price
         if not self.money_manager.can_return_change(change):
             print("\033[31m 硬貨の釣銭切れのため購入できません。\033[0m")
+            time.sleep(1)
             return False
 
         # 払出
