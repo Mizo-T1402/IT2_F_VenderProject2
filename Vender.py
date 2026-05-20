@@ -185,7 +185,11 @@ class VendMachineController:
                 
                 fin_time = 10
                 while (fin_time >= 0):
-                    print(f"{fin_time}秒後にプログラムを終了します。")
+                    if fin_time%2 ==0:
+                        print( f"\033[36m{fin_time}秒後にプログラムを終了します。\033[0m")
+                    elif fin_time%2 ==1:
+                        print( f"\033[33m{fin_time}秒後にプログラムを終了します。\033[0m")
+                    
                     fin_time -= 1
                     time.sleep(1)
                     
