@@ -7,11 +7,13 @@ from collections import defaultdict
 # ---------- データクラス ----------
 
 class Item:
-    def __init__(self, code, name, price, stock):
+    def __init__(self, code, name, price, stock, sales, total):
         self.code = code
         self.name = name
         self.price = price
         self.stock = stock
+        self.sales = sales
+        self.total = total
 
 
 # ---------- 金銭管理 ----------
@@ -81,30 +83,58 @@ class MoneyManager:
         self.inserted_count.clear()
 
 
+# -----売上管理----追加部分＿溝
+
+class SalesManager:
+    def __init__(self):
+        self.amount_read = []
+        self.amount = 0
+
+    def load_sales(self, filepath):
+        with open(filepath, newline="", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            first_row = next(reader)
+            self.amount_read.append(int(first_row["amount"]))
+        self.amount = self.amount_read[0]
+
+    def sales_cal(self, sale):
+        self.amount += sale
+
+    def save_sales(self, filepath):
+        #salesの内容をcsvに書き込み
+        with open(filepath, mode = "w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.writer(f)
+            writer.writerow(['amount'])
+            writer.writerow([self.amount])
+
+
+
 # ---------- 商品管理 ----------
 
 class ItemManager:
     ITEM_KEYS = {"A", "B", "C", "D", "E", "F"}
 
-    def __init__(self, money_manager):
+    def __init__(self, money_manager, sales_manager):
         self.items = []
         self.money_manager = money_manager
+        self.sales_manager = sales_manager #追加部分＿溝
+        self.sales = SalesManager() #追加部分＿溝
 
     def load_items(self, filepath):
         with open(filepath, newline="", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 self.items.append(
-                    Item(row["code"], row["name"], int(row["price"]), int(row["stock"]))
+                    Item(row["code"], row["name"], int(row["price"]), int(row["stock"]),int(row["sales"]), int(row["total"]))
                 )
 
     def save_items(self, filepath):
         #itemの内容をcsvに書き込み
         with open(filepath, mode = "w", newline="", encoding="utf-8-sig") as f:
             writer = csv.writer(f)
-            writer.writerow(['code','name','price','stock'])
+            writer.writerow(['code','name','price','stock','sales','total'])
             for item in self.items:
-                writer.writerow([item.code,item.name,item.price,item.stock])
+                writer.writerow([item.code,item.name,item.price,item.stock,item.sales,item.total])
 
     def display_items(self):
         for item in self.items:
@@ -137,11 +167,15 @@ class ItemManager:
 
         # 払出
         item.stock -= 1
+        item.sales += 1
+        item.total += item.price
+        self.sales_manager.sales_cal(item.price) #追加部分＿溝
         self.money_manager.return_change(change)
 
         # csvに保存
         self.save_items("items.csv")
         self.money_manager.save_money("money.csv")
+        self.sales_manager.save_sales("sales.csv") #追加部分＿溝
 
         print(f"\033[34m \n{item.name} の購入ありがとうございました。\033[0m")
         if change > 0:
@@ -157,11 +191,13 @@ class ItemManager:
 class VendMachineController:
     def __init__(self):
         self.money = MoneyManager()
-        self.items = ItemManager(self.money)
+        self.sales = SalesManager() #追加部分＿溝
+        self.items = ItemManager(self.money,self.sales)
 
     def setup(self):
         self.items.load_items("items.csv")
         self.money.load_money("money.csv")
+        self.sales.load_sales("sales.csv") 
 
     def clear(self):
         os.system("cls" if os.name == "nt" else "clear")
