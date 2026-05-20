@@ -181,7 +181,14 @@ class VendMachineController:
             if key == "9":
                 if self.money.inserted_total > 0:
                     print(f"返金 {self.money.inserted_total}円")
-                time.sleep(10)
+
+                
+                fin_time = 10
+                while (fin_time >= 0):
+                    print(f"{fin_time}秒後にプログラムを終了します。")
+                    fin_time -= 1
+                    time.sleep(1)
+                    
                 break
 
             if key in MoneyManager.MONEY_KEYS:
