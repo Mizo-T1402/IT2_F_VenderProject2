@@ -124,7 +124,8 @@ class ItemManager:
             return False
 
         if self.money_manager.inserted_total < item.price:
-            print("\033[31m 投入金が不足しています。お金を追加してください。\033[0m")
+            shotage = item.price - self.money_manager.inserted_total
+            print(f"\033[31m 投入金が{shotage}円不足しています。お金を追加してください。\033[0m")
             time.sleep(1)
             return False
 
