@@ -7,13 +7,11 @@ from collections import defaultdict
 # ---------- データクラス ----------
 
 class Item:
-    def __init__(self, code, name, price, stock, sales, total):
+    def __init__(self, code, name, price, stock):
         self.code = code
         self.name = name
         self.price = price
         self.stock = stock
-        self.sales = sales
-        self.total = total
 
 
 # ---------- 金銭管理 ----------
@@ -26,7 +24,6 @@ class MoneyManager:
         "4": 500,
         "5": 1000
     }
-
 
     def __init__(self):
         self.money_stock = {}
@@ -51,8 +48,14 @@ class MoneyManager:
 
         # 上限チェック
         limit = 2 if value == 1000 else 20
-        if self.inserted_count[value] >= limit:
+        if self.inserted_total + value >= 2000:
+            print("\033[31m 投入金額を超えています。\033[0m]]")
+            time.sleep(1)
+            return
+        
+        elif self.inserted_count[value] >= limit:
             print("\033[31m 投入枚数が上限(20枚)を超えています。\033[0m")
+            time.sleep(1)
             return
 
         self.inserted_total += value
@@ -78,57 +81,30 @@ class MoneyManager:
         self.inserted_count.clear()
 
 
-# -----売上管理----追加部分＿溝
-
-class SalesManager:
-    def __init__(self):
-        self.amount_read = []
-        self.amount = 0
-
-    def load_sales(self, filepath):
-        with open(filepath, newline="", encoding="utf-8-sig") as f:
-            reader = csv.DictReader(f)
-            first_row = next(reader)
-            self.amount_read.append(int(first_row["amount"]))
-        self.amount = self.amount_read[0]
-
-    def sales_cal(self, sale):
-        self.amount += sale
-
-    def save_sales(self, filepath):
-        #salesの内容をcsvに書き込み
-        with open(filepath, mode = "w", newline="", encoding="utf-8-sig") as f:
-            writer = csv.writer(f)
-            writer.writerow(['amount'])
-            writer.writerow([self.amount])
-
-
 # ---------- 商品管理 ----------
 
 class ItemManager:
-    ITEM_KEYS = {"A", "B", "C", "D", "E"}
+    ITEM_KEYS = {"A", "B", "C", "D", "E", "F"}
 
-    def __init__(self, money_manager, sales_manager):
+    def __init__(self, money_manager):
         self.items = []
         self.money_manager = money_manager
-        self.sales_manager = sales_manager #追加部分＿溝
-        self.sales = SalesManager() #追加部分＿溝
 
     def load_items(self, filepath):
         with open(filepath, newline="", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 self.items.append(
-                    Item(row["code"], row["name"], int(row["price"]), int(row["stock"]),int(row["sales"]), int(row["total"]))
+                    Item(row["code"], row["name"], int(row["price"]), int(row["stock"]))
                 )
 
     def save_items(self, filepath):
         #itemの内容をcsvに書き込み
         with open(filepath, mode = "w", newline="", encoding="utf-8-sig") as f:
             writer = csv.writer(f)
-            writer.writerow(['code','name','price','stock','sales','total'])
+            writer.writerow(['code','name','price','stock'])
             for item in self.items:
-                writer.writerow([item.code,item.name,item.price,item.stock,item.sales,item.total])
+                writer.writerow([item.code,item.name,item.price,item.stock])
 
     def display_items(self):
         for item in self.items:
@@ -139,35 +115,33 @@ class ItemManager:
             else:
                 print(f"{item.code} {item.name} {item.price}円")
 
-         
-
     def select_item(self, code):
-
         item = next((i for i in self.items if i.code == code), None)
 
         if item.stock == 0:
             print("\033[31m 売切れ商品です。他の商品を選択してください。\033[0m")
+            time.sleep(1)
             return False
 
         if self.money_manager.inserted_total < item.price:
+            shotage = item.price - self.money_manager.inserted_total
+            print(f"\033[31m 投入金が{shotage}円不足しています。お金を追加してください。\033[0m")
+            time.sleep(1)
             return False
 
         change = self.money_manager.inserted_total - item.price
         if not self.money_manager.can_return_change(change):
             print("\033[31m 硬貨の釣銭切れのため購入できません。\033[0m")
+            time.sleep(1)
             return False
 
         # 払出
         item.stock -= 1
-        item.sales += 1
-        item.total += item.price
-        self.sales_manager.sales_cal(item.price) #追加部分＿溝
         self.money_manager.return_change(change)
 
-        # csvに保存　合計金額の記入もここでよさそう
+        # csvに保存
         self.save_items("items.csv")
         self.money_manager.save_money("money.csv")
-        self.sales_manager.save_sales("sales.csv") #追加部分＿溝
 
         print(f"\033[34m \n{item.name} の購入ありがとうございました。\033[0m")
         if change > 0:
@@ -175,7 +149,7 @@ class ItemManager:
 
         time.sleep(10)
         self.money_manager.reset()
-        return True               
+        return True
 
 
 # ---------- メイン制御 ----------
@@ -183,16 +157,11 @@ class ItemManager:
 class VendMachineController:
     def __init__(self):
         self.money = MoneyManager()
-        self.sales = SalesManager() #追加部分＿溝
-        self.items = ItemManager(self.money,self.sales)
+        self.items = ItemManager(self.money)
 
     def setup(self):
         self.items.load_items("items.csv")
         self.money.load_money("money.csv")
-        self.sales.load_sales("sales.csv") 
-
-    def reload_sales(self):
-        self.sales.load_sales("sales.csv") #追加部分＿溝
 
     def clear(self):
         os.system("cls" if os.name == "nt" else "clear")
@@ -201,7 +170,6 @@ class VendMachineController:
         self.setup()
 
         while True:
-
             self.clear()
             print("*** 自動販売機 シミュレーション ソフトウェア ***")
             self.items.display_items()
@@ -213,13 +181,24 @@ class VendMachineController:
             if key == "9":
                 if self.money.inserted_total > 0:
                     print(f"返金 {self.money.inserted_total}円")
-                time.sleep(10)
+
+                
+                fin_time = 10
+                while (fin_time >= 0):
+                    
+                    print( f"{fin_time}秒後にプログラムを終了します。")
+                    fin_time -= 1
+                    time.sleep(1)
+                    
                 break
 
             if key in MoneyManager.MONEY_KEYS:
                 self.money.insert_money(key)
             elif key in ItemManager.ITEM_KEYS:
                 self.items.select_item(key)
+            else:
+                print("\033[31m 入力エラー。再度入力してください。\033[0m")
+                time.sleep(1)
 
 
 # ---------- 実行 ----------
