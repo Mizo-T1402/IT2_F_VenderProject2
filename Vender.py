@@ -112,11 +112,6 @@ class ItemManager:
         self.items = []
         self.money_manager = money_manager
         self.sales_manager = sales_manager #追加部分＿溝
-        self.sales = SalesManager() #追加部分＿溝
-
-    
-    def reload_sales(self):
-        self.sales.load_sales("sales.csv") #追加部分＿溝
 
     def load_items(self, filepath):
         with open(filepath, newline="", encoding="utf-8-sig") as f:
@@ -145,6 +140,7 @@ class ItemManager:
       
 
     def select_item(self, code):
+
         item = next((i for i in self.items if i.code == code), None)
 
         if item.stock == 0:
@@ -177,7 +173,6 @@ class ItemManager:
 
         time.sleep(10)
         self.money_manager.reset()
-        self.reload_sales()
         return True               
 
 
@@ -192,6 +187,8 @@ class VendMachineController:
     def setup(self):
         self.items.load_items("items.csv")
         self.money.load_money("money.csv")
+
+    def reload_sales(self):
         self.sales.load_sales("sales.csv") #追加部分＿溝
 
     def clear(self):
@@ -201,6 +198,7 @@ class VendMachineController:
         self.setup()
 
         while True:
+            self.reload_sales()
 
             self.clear()
             print("*** 自動販売機 シミュレーション ソフトウェア ***")
