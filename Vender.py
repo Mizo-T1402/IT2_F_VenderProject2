@@ -124,7 +124,8 @@ class ItemManager:
             return False
 
         if self.money_manager.inserted_total < item.price:
-            print("\033[31m 投入金が不足しています。お金を追加してください。\033[0m")
+            shotage = item.price - self.money_manager.inserted_total
+            print(f"\033[31m 投入金が{shotage}円不足しています。お金を追加してください。\033[0m")
             time.sleep(1)
             return False
 
@@ -180,13 +181,24 @@ class VendMachineController:
             if key == "9":
                 if self.money.inserted_total > 0:
                     print(f"返金 {self.money.inserted_total}円")
-                time.sleep(10)
+
+                
+                fin_time = 10
+                while (fin_time >= 0):
+                    
+                    print( f"{fin_time}秒後にプログラムを終了します。")
+                    fin_time -= 1
+                    time.sleep(1)
+                    
                 break
 
             if key in MoneyManager.MONEY_KEYS:
                 self.money.insert_money(key)
             elif key in ItemManager.ITEM_KEYS:
                 self.items.select_item(key)
+            else:
+                print("\033[31m 入力エラー。再度入力してください。\033[0m")
+                time.sleep(1)
 
 
 # ---------- 実行 ----------
