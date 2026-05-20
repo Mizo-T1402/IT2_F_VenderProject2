@@ -187,6 +187,9 @@ class VendMachineController:
                 self.money.insert_money(key)
             elif key in ItemManager.ITEM_KEYS:
                 self.items.select_item(key)
+            else:
+                print("\033[31m 入力エラー。再度入力してください。\033[0m")
+                time.sleep(1)
 
 
 # ---------- 実行 ----------
