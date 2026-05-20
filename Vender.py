@@ -90,9 +90,9 @@ class SalesManager:
             reader = csv.DictReader(f)
             first_row = next(reader)
             self.amount_read.append(int(first_row["amount"]))
+        self.amount = self.amount_read[0]
 
     def sales_cal(self, sale):
-        self.amount = self.amount_read[0]
         self.amount += sale
 
     def save_sales(self, filepath):
@@ -112,6 +112,7 @@ class ItemManager:
         self.items = []
         self.money_manager = money_manager
         self.sales_manager = sales_manager #追加部分＿溝
+        self.sales = SalesManager() #追加部分＿溝
 
     def load_items(self, filepath):
         with open(filepath, newline="", encoding="utf-8-sig") as f:
@@ -137,7 +138,8 @@ class ItemManager:
                print(f"{item.code} {item.name}\033[34m {item.price}円 \033[0m")
             else:
                 print(f"{item.code} {item.name} {item.price}円")
-      
+
+         
 
     def select_item(self, code):
 
@@ -187,6 +189,7 @@ class VendMachineController:
     def setup(self):
         self.items.load_items("items.csv")
         self.money.load_money("money.csv")
+        self.sales.load_sales("sales.csv") 
 
     def reload_sales(self):
         self.sales.load_sales("sales.csv") #追加部分＿溝
@@ -198,7 +201,6 @@ class VendMachineController:
         self.setup()
 
         while True:
-            self.reload_sales()
 
             self.clear()
             print("*** 自動販売機 シミュレーション ソフトウェア ***")
