@@ -180,7 +180,8 @@ class ItemManager:
         print(f"\033[34m \n{item.name} の購入ありがとうございました。\033[0m")
         if change > 0:
             print(f"\033[34mお釣り {change}円 をお受け取りください。\033[0m")
-
+        
+        print("準備中です。しばらくお待ちください。")
         time.sleep(10)
         self.money_manager.reset()
         return True
@@ -219,12 +220,9 @@ class VendMachineController:
                     print(f"返金 {self.money.inserted_total}円")
 
                 
-                fin_time = 10
-                while (fin_time >= 0):
-                    
-                    print( f"{fin_time}秒後にプログラムを終了します。")
-                    fin_time -= 1
-                    time.sleep(1)
+                
+                print( "プログラムを終了します。しばらくお待ちください。")
+                time.sleep(10)
                     
                 break
 
