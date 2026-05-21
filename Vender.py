@@ -50,14 +50,14 @@ class MoneyManager:
 
         # 上限チェック
         limit = 2 if value == 1000 else 20
-        if self.inserted_total + value >= 2000:
+        if self.inserted_total + value >= 2000: #投入金額上限設定
             print("\033[31m 投入金額を超えています。\033[0m]]")
-            time.sleep(1)
+            time.sleep(1) #表示時間延長
             return
         
         elif self.inserted_count[value] >= limit:
             print("\033[31m 投入枚数が上限(20枚)を超えています。\033[0m")
-            time.sleep(1)
+            time.sleep(1) #表示時間延長
             return
 
         self.inserted_total += value
@@ -112,7 +112,7 @@ class SalesManager: #合計売上の管理を行うクラス
 # ---------- 商品管理 ----------
 
 class ItemManager:
-    ITEM_KEYS = {"A", "B", "C", "D", "E", "F"}
+    ITEM_KEYS = {"A", "B", "C", "D", "E", "F"} #商品追加
 
     def __init__(self, money_manager, sales_manager):
         self.items = []
@@ -150,19 +150,19 @@ class ItemManager:
 
         if item.stock == 0:
             print("\033[31m 売切れ商品です。他の商品を選択してください。\033[0m")
-            time.sleep(1)
+            time.sleep(1) #表示時間延長
             return False
 
         if self.money_manager.inserted_total < item.price:
             shotage = item.price - self.money_manager.inserted_total
             print(f"\033[31m 投入金が{shotage}円不足しています。お金を追加してください。\033[0m")
-            time.sleep(1)
+            time.sleep(1) #メッセージ表示追加
             return False
 
         change = self.money_manager.inserted_total - item.price
         if not self.money_manager.can_return_change(change):
             print("\033[31m 硬貨の釣銭切れのため購入できません。\033[0m")
-            time.sleep(1)
+            time.sleep(1) #表示時間延長
             return False
 
         # 払出
@@ -181,7 +181,7 @@ class ItemManager:
         if change > 0:
             print(f"\033[34mお釣り {change}円 をお受け取りください。\033[0m")
         
-        print("準備中です。しばらくお待ちください。")
+        print("準備中です。しばらくお待ちください。") #メッセージ表示追加
         time.sleep(10)
         self.money_manager.reset()
         return True
@@ -219,9 +219,7 @@ class VendMachineController:
                 if self.money.inserted_total > 0:
                     print(f"返金 {self.money.inserted_total}円")
 
-                
-                
-                print( "プログラムを終了します。しばらくお待ちください。")
+                print( "プログラムを終了します。しばらくお待ちください。") #メッセージ表示追加
                 time.sleep(10)
                     
                 break
@@ -231,7 +229,7 @@ class VendMachineController:
             elif key in ItemManager.ITEM_KEYS:
                 self.items.select_item(key)
             else:
-                print("\033[31m 入力エラー。再度入力してください。\033[0m")
+                print("\033[31m 入力エラー。再度入力してください。\033[0m") #メッセージ表示追加
                 time.sleep(1)
 
 
